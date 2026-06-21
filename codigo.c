@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-
+#include <math.h>
 
 int verifica_data(int dia, int mes, int ano) { //1 para data válida 
     if(mes == 2) { //analisa dias de fevereiro com ano bissexto
@@ -80,7 +80,24 @@ int buscar_estacao(struct Estacao lista_estacoes[], int id, int linhas) {
     return 0;
 }
 
-void imprimir_estacao(struct Estacao lista_estacoes[], int indice) { //Imprime os dados de uma estação
+float calcularMediaRecursiva(float leituras[], int n) { //Calcula a media para opção 1
+    if(n==0) return 0;
+    return(leituras[n-1] + calcularMediaRecursiva(leituras, n-1) * (n-1)) / n;
+}
+
+float calcularVariancia(float leituras[], int n) { //útil para opção 1
+    float media = calcularMediaRecursiva(leituras,n);
+    if(n==0) return 0;
+    float variancia = 0;
+    int i;
+    i=0;
+    for(i=0; i<n; i++) {
+        variancia = variancia +(leituras[i] - media) * (leituras[i] - media); 
+    }
+    return variancia;
+}
+
+void imprimir_estacao(struct Estacao lista_estacoes[], int indice) { //Imprime os dados de uma estação(opção 4)
     struct Estacao estacao = lista_estacoes[indice];
     printf("Id: %d\n", estacao.id);
     printf("Nome: %s\n", estacao.nome);
@@ -145,9 +162,6 @@ void imprimir_operador(struct Estacao lista_estacoes[], int linhas, char operado
     }
 }
 
-void verifica_leitura(float leitura) {
-
-}
 
 void imprimir_menu() { //Imprime as funcionalidade do programa
     printf("   MENU  \n");
@@ -159,6 +173,34 @@ void imprimir_menu() { //Imprime as funcionalidade do programa
     printf("6. Detectar anomalias\n");
     printf("7. Sair\n");
 }
+
+salvar_csv(struct Estacao lista_estacoes[], int linhas) {
+    FILE*arq = fopen("arquivo.csv", "w");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo!\n");
+        return;
+    }
+    for (int i = 0; i < linhas; i++) {
+        fprintf(arq, "%d,%s,%s,%s,%d,%.2f,%.2f,%.2f,%02d/%02d/%d", 
+                lista_estacoes[i].id,
+                lista_estacoes[i].nome,
+                lista_estacoes[i].operador,
+                lista_estacoes[i].sensor,
+                lista_estacoes[i].n,
+                lista_estacoes[i].media,
+                lista_estacoes[i].variancia,
+                lista_estacoes[i].desvioPadrao,
+                lista_estacoes[i].data.dia,
+                lista_estacoes[i].data.mes,
+                lista_estacoes[i].data.ano);
+        for (int j = 0; j < lista_estacoes[i].n; j++) {
+            fprintf(arq, ";%.2f", lista_estacoes[i].leituras[j]);
+        }
+        fprintf(arq, "\n");
+    }
+    fclose(arq);
+}
+
 
 struct DataLeitura{
     int dia;
@@ -235,7 +277,7 @@ int main(void) {
             printf("Nome inválido! Digite um nome que contenha apenas letras e espaços: ");
             fgets(lista_estacoes[linhas-1].nome, sizeof(lista_estacoes[linhas-1].nome), stdin);
         }
-        lista_estacoes[linhas-1].nome[strcspn(lista_estacoes[linhas-1].nome, "\n")] = 0; 
+        lista_estacoes[linhas-1].nome[strcspn(lista_estacoes[linhas-1].nome, "\n")] = '\0'; 
 
         printf("Operador: ");
         fgets(lista_estacoes[linhas-1].operador,sizeof(lista_estacoes[linhas-1].operador), stdin);
@@ -243,7 +285,7 @@ int main(void) {
             printf("Operador inválido! Digite um nome que contenha apenas letras e espaços: ");
             fgets(lista_estacoes[linhas-1].operador,sizeof(lista_estacoes[linhas-1].operador), stdin);
         }
-        lista_estacoes[linhas-1].operador[strcspn(lista_estacoes[linhas-1].operador, "\n")] = 0;
+        lista_estacoes[linhas-1].operador[strcspn(lista_estacoes[linhas-1].operador, "\n")] = '\0';
 
         printf("Sensor: ");
         fgets(lista_estacoes[linhas-1].sensor,sizeof(lista_estacoes[linhas-1].sensor), stdin);
@@ -251,7 +293,7 @@ int main(void) {
             printf("Sensor inválido! Digite um nome que contenha apenas letras e espaços: ");
             fgets(lista_estacoes[linhas-1].sensor,sizeof(lista_estacoes[linhas-1].sensor), stdin);
         }
-        lista_estacoes[linhas-1].sensor[strcspn(lista_estacoes[linhas-1].sensor, "\n")] = 0;
+        lista_estacoes[linhas-1].sensor[strcspn(lista_estacoes[linhas-1].sensor, "\n")] = '\0';
 
         printf("Data (dd/mm/aaaa): ");
         char data[11];
@@ -278,6 +320,10 @@ int main(void) {
         }
         lista_estacoes[linhas-1].leituras = leituras;
 
+        lista_estacoes[linhas-1].media = calcularMediaReducursiva(leituras, lista_estacoes[linhas-1].n);
+        lista_estacoes[linhas-1].variancia = calcularVariancia(leituras,lista_estacoes[linhas-1].n);
+        lista_estacoes[linhas-1].desvioPadrao = sqrt(lista_estacoes[linhas-1].variancia);
+
         fprintf(arq, "%d;%s;%s;%s;%02d/%02d/%04d;%d", //Salva no CSV os dados da estação
                 lista_estacoes[linhas-1].id,
                 lista_estacoes[linhas-1].nome,
@@ -286,7 +332,10 @@ int main(void) {
                 lista_estacoes[linhas-1].data.dia,
                 lista_estacoes[linhas-1].data.mes,
                 lista_estacoes[linhas-1].data.ano,
-                lista_estacoes[linhas-1].n);
+                lista_estacoes[linhas-1].n,
+                lista_estacoes[linhas-1].media,
+                lista_estacoes[linhas-1].variancia,
+                lista_estacoes[linhas-1].desvioPadrao);
 
         for (i = 0; i < lista_estacoes[linhas-1].n; i++) {
             fprintf(arq, ";%.2f", leituras[i]);
@@ -354,15 +403,35 @@ int main(void) {
         char operador[60];
         printf("Digite o nome do operador que deseja buscar: ");
         fgets(operador,sizeof(operador), stdin);
+        operador[strcspn(operador, "\n")] = '\0';
         imprimir_operador(lista_estacoes, linhas, operador);
     }
 
-    if(opcao==6) {
-
+    if(opcao==6) { //Buscar anomalias de uma estação
+        int id;
+        printf("Insira o id da estação que deseja analisar: ");
+        scanf("%d", &id);
+        while(verifica_id(id, lista_estacoes, linhas) != 0) {
+            printf("Id não encontrado! Digite um id válido: ");
+            scanf("%d", &id);
+        }
+        int i,j;
+        float x,y;
+        i = buscar_estacao(lista_estacoes, id, linhas);
+        struct Estacao estacao = lista_estacoes[i];
+        x= (2*estacao.desvioPadrao) + estacao.media;
+        y= estacao.media - (2*estacao.desvioPadrao);
+        printf("Anomalias encontradas:\n");
+        for(j=0; j<estacao.n; j++) {
+            if(estacao.leituras[j] > x || estacao.leituras[j] < y) {
+                printf("Leitura %d: %.2f\n", j+1, estacao.leituras[j]);
+            }
+        }
     }
 
     imprimir_menu();
     scanf("%d", &opcao);
   }
+  salvar_csv(lista_estacoes, linhas); //Salva as alterações feitas no programa no arquivo CSV
   return 0;
 }
