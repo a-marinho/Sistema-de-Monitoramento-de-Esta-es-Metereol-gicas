@@ -25,10 +25,19 @@ struct Estacao{ //define struct da estação (já presente no problema)
 
 int verifica_data(char data[]) { //1 para data válida 
     int ano, mes, dia;
+    char copia[11]; //Precisamos criar string auxiliar, pois strtok destroi a string analisada
+    strcpy(copia,data); //Copia data para copia
 
-    dia = atoi(strtok(data, "/"));
-    mes = atoi(strtok(NULL, "/"));
-    ano = atoi(strtok(NULL, "/"));
+    //Ponteiros vão analisar se a string data é válida
+    char *a1=strtok(copia,"/");
+    char *a2=strtok(NULL,"/");
+    char *a3=strtok(NULL,"/");
+    //Verifica se existem números em cada ponteiro(atoi(NULL) da problema)
+    if(a1==NULL||a2==NULL||a3==NULL) return 0; 
+
+    dia = atoi(a1);
+    mes = atoi(a2);
+    ano = atoi(a3);
 
     if(ano<1900 || ano>2100) return 0; //analisa anos válidos(pedido no problema)
     if(mes<=0 || mes>12) return 0; //analisa meses válidos
@@ -79,23 +88,26 @@ int verifica_n (int n) { //1 para n valido
     return 0;
 }
 
-int verifica_string(char string[], int n) { //1 para string valida
+int verifica_string(char string[], int n) { //0 para string valida
     int i;
     for(i=0; i<n && string[i] != '\0'; i++) {
-        if(!isalpha(string[i]) && !isspace(string[i])) { //verifica se a string contém apenas letras e espaços
-            return 1;
+        //Verifica se a string contem apenas letras e espaços
+        if(!isalpha(string[i]) && string[i]!=' ' && string[i] != '\0') { 
+            return 1; 
         }
     }
     return 0;
 }
+
 int conta_linhas() { //Conta as linhas do arquivo (essencial para achar estacoes)
     FILE*arq = fopen("arquivo.csv", "r");
     if(arq == NULL) {
         printf("Arquivo não encontrado!\n");
-        return 1; 
+        return 0; 
     }
-    int contador = 1; //Começa com 1 para contar a linha de cabeçalho
-    char linha[100];
+    int contador = 0; 
+    char linha[2000];
+    fgets(linha,sizeof(linha),arq); //Consome o cabeçalho sem contar
     while(fgets(linha, sizeof(linha), arq) != NULL) { //Enquanto houver linhas aumenta 1 no contador
         contador++;
     }
@@ -103,7 +115,8 @@ int conta_linhas() { //Conta as linhas do arquivo (essencial para achar estacoes
     return contador;
 }
 
-int buscar_estacao(struct Estacao lista_estacoes[], int id, int linhas) { //Retorna o indice da estação com o id buscado
+//Retorna o índice da estação com o id buscado
+int buscar_estacao(struct Estacao lista_estacoes[], int id, int linhas) {  
     int i;
     for(i=0;i<linhas;i++) {
         if(lista_estacoes[i].id == id) {
@@ -124,10 +137,11 @@ float calcularVariancia(float leituras[], int n) { //útil para opção 1
     float variancia = 0;
     int i;
     i=0;
-    for(i=0; i<n; i++) { //Variancia é a soma da diferença de cada elemento em relação à média ao quadrado
+    //Variancia é a soma da diferença de cada elemento em relação à média ao quadrado sobre n
+    for(i=0; i<n; i++) { 
         variancia = variancia +(leituras[i] - media) * (leituras[i] - media); 
     }
-    return variancia;
+    return variancia/n;
 }
 
 void imprimir_estacao(struct Estacao lista_estacoes[], int indice) { //Imprime os dados de uma estação(opção 4)
@@ -160,6 +174,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         estacao.nome[strcspn(estacao.nome,"\n")] = '\0'; 
         strcpy(lista_estacoes[indice].nome, estacao.nome); //grava a nova estacao
     }
+
     if (alterador==2) {
         printf("Insira o novo nome do operador: ");
         fgets(estacao.operador, sizeof(estacao.operador), stdin);
@@ -170,6 +185,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         estacao.operador[strcspn(estacao.operador,"\n")]='\0';
         strcpy(lista_estacoes[indice].operador, estacao.operador); //grava o novo operador
     }
+
     if(alterador==3) {
         printf("Insira o novo tipo do sensor: ");
         fgets(estacao.sensor, sizeof(estacao.sensor), stdin);
@@ -177,25 +193,31 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
             printf("Nome de sensor invalido! Digite um nome que contenha apenas letras e espaços: ");
             fgets(estacao.sensor,sizeof(estacao.sensor),stdin);
         }
-        estacao.sensor[strcspn(estacao.operador,"\n")]='\0';
+        estacao.sensor[strcspn(estacao.sensor,"\n")]='\0';
         strcpy(lista_estacoes[indice].sensor, estacao.sensor); //grava o novo sensor
     }
+
     if(alterador==4) {
         printf("Insira a nova data (dd/mm/aaaa): ");
         char data[11];
         fgets(data, sizeof(data), stdin);
+        if(strchr(data,'\n') == NULL) { //Verifica se precisa limpar o buffer
+            while(getchar() != '\n'); //limpa o buffer
+        }
         data[strcspn(data,"\n")] ='\0';
-        while(getchar() != '\n'); 
         while(verifica_data(data) != 1) { //verifica se a data é valida
             printf("Data Inválida! Insira outra data: ");
             fgets(data,sizeof(data),stdin); 
+            if(strchr(data,'\n') == NULL) { //Mesma lógica da anterior
+                while(getchar() != '\n'); 
+            }
             data[strcspn(data,"\n")] ='\0';
-            while(getchar() != '\n'); //Limpa o buffer
         }
         lista_estacoes[indice].data.dia = atoi(strtok(data,"/")); //grava novo dia, mes e ano
         lista_estacoes[indice].data.mes = atoi(strtok(NULL, "/"));
         lista_estacoes[indice].data.ano = atoi(strtok(NULL, "/"));
     }
+
     if (alterador==5) {
         int indice_novaleitura;
         float nova_leitura;
@@ -210,11 +232,11 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         while(1) {
             printf("Digite o novo valor da leitura: ");
             if (scanf("%f", &nova_leitura) == 1) {
-                while(getchar != '\n'); //Limpa o buffer
+                while(getchar() != '\n'); //Limpa o buffer
                 break;
             }
             else{
-                while(getchar != '\n');
+                while(getchar() != '\n');
                 printf("Leitura inválida! Digite um valor válido: ");
             }
         }
@@ -250,15 +272,17 @@ void imprimir_menu() { //Imprime as funcionalidade do programa
 }
 
 //Abre o arquivo e grava os dados em uma array de structs (lista_estacoes)
-void abrirCSV(struct Estacao lista_estacoes[], int linhas) { 
+int abrirCSV(struct Estacao lista_estacoes[], int linhas) { 
     FILE*arq = fopen("arquivo.csv", "r");
     if(arq == NULL) { //Checa se foi possível abir o arquivo
         printf("Erro ao abrir o arquivo!\n");
-        return 1; 
+        return 0; 
     }
     int i,j;
+    char linha[2000];
+    fgets(linha, sizeof(linha),arq); //Pula a linha do cabeçalho
+
     for (i=0; i<linhas; i++) { //Leitura das estações presentes no arquivo
-        char linha[300];
         fgets(linha, sizeof(linha), arq); 
         lista_estacoes[i].id = atoi(strtok(linha, ",")); 
         strcpy(lista_estacoes[i].nome, strtok(NULL, ",")); 
@@ -278,6 +302,7 @@ void abrirCSV(struct Estacao lista_estacoes[], int linhas) {
         }
     }
     fclose(arq);
+    return 1;
 }
 
 //No final do programa salva todas as alterações feitas em lista_estacoes para o arquivo CSV
@@ -285,22 +310,24 @@ void salvarCSV(struct Estacao lista_estacoes[], int linhas) {
     FILE*arq = fopen("arquivo.csv", "w");
     if (arq == NULL) { //Checa se foi possível abrir o arquivo
         printf("Erro ao abrir o arquivo!\n");
-        return 1;
+        return 0;
     }
+    //Grava o cabeçalho 
+    fprintf(arq, "ID,Nome,Operador,Sensor,Data,N,Media,Variancia,DesvioPadrao,Leituras\n");
     int i, j;
     for (int i = 0; i < linhas; i++) {
-        fprintf(arq, "%d,%s,%s,%s,%d,%.2f,%.2f,%.2f,%02d/%02d/%d", //Grava todas as informações
+        fprintf(arq, "%d,%s,%s,%s,%02d,%02d/%02d/%04d,%d,%.2f,%.2f,%.2f", //Grava todas as informações
                 lista_estacoes[i].id,
                 lista_estacoes[i].nome,
                 lista_estacoes[i].operador,
                 lista_estacoes[i].sensor,
+                lista_estacoes[i].data.dia,
+                lista_estacoes[i].data.mes,
+                lista_estacoes[i].data.ano,
                 lista_estacoes[i].n,
                 lista_estacoes[i].media,
                 lista_estacoes[i].variancia,
-                lista_estacoes[i].desvioPadrao,
-                lista_estacoes[i].data.dia,
-                lista_estacoes[i].data.mes,
-                lista_estacoes[i].data.ano);
+                lista_estacoes[i].desvioPadrao);
         for (int j = 0; j < lista_estacoes[i].n; j++) {
             fprintf(arq, ";%.2f", lista_estacoes[i].leituras[j]);
         }
@@ -309,73 +336,82 @@ void salvarCSV(struct Estacao lista_estacoes[], int linhas) {
     fclose(arq);
 }
 
-void Adicionar_estacao(struct Estacao lista_estacoes[], int linhas) { //código opção 1
+//codigo opção 1
+//linhas deve ser ponteiro para alteração (linhas++) refletir no main
+void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) { 
     FILE*arq = fopen("arquivo.csv", "a"); //Abre o arquivo para escrita
     if (arq == NULL) {
         printf("Erro ao abrir o arquivo!\n");
-        return 1;
+        return; //Trata-se de uma função void, não faz sentido retornar 0 (nem vai ser útil)
     }
     int i;
     printf("Id: "); //Armazena o ID da nova estação (quando válido)
-    scanf("%d", &lista_estacoes[linhas-1].id);
+    scanf("%d", &lista_estacoes[*linhas].id);
     getchar();
-    while (verifica_id(lista_estacoes[linhas-1].id, lista_estacoes, linhas) != 1) { //le e verifica id
+    while (verifica_id(lista_estacoes[*linhas].id, lista_estacoes, *linhas) != 1) { //le e verifica id
         printf("Id inválido! Digite um id menor que 9999 e que não exista: ");
-        scanf("%d", &lista_estacoes[linhas-1].id);
+        scanf("%d", &lista_estacoes[*linhas].id);
         getchar();
     }
 
     printf("Nome da Estação: "); //Armazena o nome da estação (quando válido)
-    fgets(lista_estacoes[linhas-1].nome, sizeof(lista_estacoes[linhas-1].nome), stdin);
-    while(verifica_string(lista_estacoes[linhas-1].nome, sizeof(lista_estacoes[linhas-1].nome)) != 0) { //le e verifica nome
+    fgets(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome), stdin);
+    while(verifica_string(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome)) != 0) { //le e verifica nome
         printf("Nome inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[linhas-1].nome, sizeof(lista_estacoes[linhas-1].nome), stdin);
+        fgets(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome), stdin);
     }
-    lista_estacoes[linhas-1].nome[strcspn(lista_estacoes[linhas-1].nome, "\n")] = '\0'; 
+    lista_estacoes[*linhas].nome[strcspn(lista_estacoes[*linhas].nome, "\n")] = '\0'; 
 
     printf("Operador: "); //Armazena o nome do operador(quando válido)
-    fgets(lista_estacoes[linhas-1].operador,sizeof(lista_estacoes[linhas-1].operador), stdin);
-    while(verifica_string(lista_estacoes[linhas-1].operador, sizeof(lista_estacoes[linhas-1].operador)) != 0) { //le e verifica operador
+    fgets(lista_estacoes[*linhas].operador,sizeof(lista_estacoes[*linhas].operador), stdin);
+    while(verifica_string(lista_estacoes[*linhas].operador, sizeof(lista_estacoes[*linhas].operador)) != 0) { //le e verifica operador
         printf("Operador inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[linhas-1].operador,sizeof(lista_estacoes[linhas-1].operador), stdin);
+        fgets(lista_estacoes[*linhas].operador,sizeof(lista_estacoes[*linhas].operador), stdin);
     }
-    lista_estacoes[linhas-1].operador[strcspn(lista_estacoes[linhas-1].operador, "\n")] = '\0';
+    lista_estacoes[*linhas].operador[strcspn(lista_estacoes[*linhas].operador, "\n")] = '\0';
 
     printf("Sensor: "); //Armazena o nome da string(quando válida)
-    fgets(lista_estacoes[linhas-1].sensor,sizeof(lista_estacoes[linhas-1].sensor), stdin);
-    while(verifica_string(lista_estacoes[linhas-1].sensor, sizeof(lista_estacoes[linhas-1].sensor)) != 0) { //le e verifica sensor
+    fgets(lista_estacoes[*linhas].sensor,sizeof(lista_estacoes[*linhas].sensor), stdin);
+    while(verifica_string(lista_estacoes[*linhas].sensor, sizeof(lista_estacoes[*linhas].sensor)) != 0) { //le e verifica sensor
         printf("Sensor inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[linhas-1].sensor,sizeof(lista_estacoes[linhas-1].sensor), stdin);
+        fgets(lista_estacoes[*linhas].sensor,sizeof(lista_estacoes[*linhas].sensor), stdin);
     }
-    lista_estacoes[linhas-1].sensor[strcspn(lista_estacoes[linhas-1].sensor, "\n")] = '\0';
+    lista_estacoes[*linhas].sensor[strcspn(lista_estacoes[*linhas].sensor, "\n")] = '\0';
 
     printf("Data (dd/mm/aaaa): ");
     char data[11];
     fgets(data, sizeof(data), stdin);
-    data[strcspn(data,"\n")] ='\0';
-    while(getchar() != '\n'); 
+    //Nesse caso strchr procura se em data temos \n
+    //Se não houver, retorna NULL. O que significa que sobrou coisa no buffer que deve ser limpa
+    if(strchr(data,'\n') == NULL) { 
+        while(getchar() != '\n'); //Limpa o buffer
+    }
+    data[strcspn(data,"\n")] ='\0'; //Troca o \n da string se houver
+    
     while(verifica_data(data) != 1) { //verifica se a data é valida
         printf("Data Inválida! Insira outra data: ");
         fgets(data,sizeof(data),stdin); 
+        if(strchr(data,'\n') == NULL) { //Mesma lógica da anterior
+            while(getchar() != '\n'); 
+        }
         data[strcspn(data,"\n")] ='\0';
-        while(getchar() != '\n'); //Limpa o buffer
     }
     //Grava os valores válidos da data na struct
-    lista_estacoes[linhas-1].data.dia = atoi(strtok(data, "/"));
-    lista_estacoes[linhas-1].data.mes = atoi(strtok(NULL, "/"));
-    lista_estacoes[linhas-1].data.ano = atoi(strtok(NULL, "/"));
+    lista_estacoes[*linhas].data.dia = atoi(strtok(data, "/"));
+    lista_estacoes[*linhas].data.mes = atoi(strtok(NULL, "/"));
+    lista_estacoes[*linhas].data.ano = atoi(strtok(NULL, "/"));
 
     printf("Quantidade de leituras: ");
-    scanf("%d", &lista_estacoes[linhas-1].n);
+    scanf("%d", &lista_estacoes[*linhas].n);
     getchar();
-    while(verifica_n(lista_estacoes[linhas-1].n) != 1) { //le e verifica n
+    while(verifica_n(lista_estacoes[*linhas].n) != 1) { //le e verifica n
         printf("Quantidade inválida! Digite um número maior que 0 e menor que 9999: ");
-        scanf("%d", &lista_estacoes[linhas-1].n);
+        scanf("%d", &lista_estacoes[*linhas].n);
         getchar();
     }
 
-    float*leituras=(float*)malloc(lista_estacoes[linhas-1].n * sizeof(float)); //Aloca dinamicamente mem
-    for(i=0; i<lista_estacoes[linhas-1].n; i++) {
+    float*leituras=(float*)malloc(lista_estacoes[*linhas].n * sizeof(float)); //Aloca dinamicamente mem
+    for(i=0; i<lista_estacoes[*linhas].n; i++) {
         while(1) { //Loop opera ate leitura válida
             printf("Leitura %d: ", i+1);
             if(scanf("%f", &leituras[i]) == 1) { //le e verifica leituras
@@ -387,44 +423,42 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int linhas) { //código 
             }
         }
     }
-    lista_estacoes[linhas-1].leituras = leituras;
+    lista_estacoes[*linhas].leituras = leituras;
     //Calcula media, variancia e desvio automaticamente após valores de leitura serem inseridos
-    lista_estacoes[linhas-1].media = calcularMediaRecursiva(leituras, lista_estacoes[linhas-1].n);
-    lista_estacoes[linhas-1].variancia = calcularVariancia(leituras,lista_estacoes[linhas-1].n);
-    lista_estacoes[linhas-1].desvioPadrao = sqrt(lista_estacoes[linhas-1].variancia);
+    lista_estacoes[*linhas].media = calcularMediaRecursiva(leituras, lista_estacoes[*linhas].n);
+    lista_estacoes[*linhas].variancia = calcularVariancia(leituras,lista_estacoes[*linhas].n);
+    lista_estacoes[*linhas].desvioPadrao = sqrt(lista_estacoes[*linhas].variancia);
 
     fprintf(arq, "%d,%s,%s,%s,%d,%.2f,%.2f,%.2f,%02d/%02d/%04d,%d", //Salva no CSV os dados 
-            lista_estacoes[linhas-1].id,
-            lista_estacoes[linhas-1].nome,
-            lista_estacoes[linhas-1].operador,
-            lista_estacoes[linhas-1].sensor,
-            lista_estacoes[linhas-1].n,
-            lista_estacoes[linhas-1].media,
-            lista_estacoes[linhas-1].variancia,
-            lista_estacoes[linhas-1].desvioPadrao,
-            lista_estacoes[linhas-1].data.dia,
-            lista_estacoes[linhas-1].data.mes,
-            lista_estacoes[linhas-1].data.ano);
+            lista_estacoes[*linhas].id,
+            lista_estacoes[*linhas].nome,
+            lista_estacoes[*linhas].operador,
+            lista_estacoes[*linhas].sensor,
+            lista_estacoes[*linhas].n,
+            lista_estacoes[*linhas].media,
+            lista_estacoes[*linhas].variancia,
+            lista_estacoes[*linhas].desvioPadrao,
+            lista_estacoes[*linhas].data.dia,
+            lista_estacoes[*linhas].data.mes,
+            lista_estacoes[*linhas].data.ano);
 
-    for (i = 0; i < lista_estacoes[linhas-1].n; i++) { //Percorre todas as leituras e grava no CSV
+    for (i = 0; i < lista_estacoes[*linhas].n; i++) { //Percorre todas as leituras e grava no CSV
         fprintf(arq, ";%.2f", leituras[i]);
     }
     fprintf(arq, "\n");
 
     fclose(arq);
-    linhas++; //adiciona mais uma linha na contagem total
-    free(leituras); //libera a memória alocada dinamicamente
-    leituras=NULL; //se eu colocar um free sem querer... free(NULL) não da nada
+    (*linhas)++; //adiciona mais uma linha na contagem total
 }
 
-
-void EditarEstacao(struct Estacao lista_estacoes[], int linhas) { //Código opção 2
+//Código opção 2
+void EditarEstacao(struct Estacao lista_estacoes[], int linhas) { 
     int id;
     printf("Digite o id da estação que deseja alterar: ");
     scanf("%d", &id);
     getchar();
     int indice = buscar_estacao(lista_estacoes, id, linhas); //Busca o indice da estação com id
-    while(indice== 0) { //Checa se existe estação com esse id
+    while(indice== -1) { //Checa se existe estação com esse id
         printf("Id não encontrado!\n");
         printf("Digite o id da estação que deseja alterar: ");
         scanf("%d", &id);
@@ -448,25 +482,28 @@ void EditarEstacao(struct Estacao lista_estacoes[], int linhas) { //Código opç
     altera_estacao(lista_estacoes,indice,alterador); 
 }
 
-
-void RemoveEstacao(struct Estacao lista_estacoes[], int linhas) { //Código opção 3
+//Código opção 3
+//Linhas é ponteiro para linhas-- refletir no main
+void RemoveEstacao(struct Estacao lista_estacoes[], int *linhas) { 
     int id, i;
     printf("Digite o id da estação que deseja remover: ");
     scanf("%d", &id);
     getchar();
-    int indice = buscar_estacao(lista_estacoes, id, linhas); //Procura o indice com o id digitado
-    while(indice== 0) { //Valida o id
+    int indice = buscar_estacao(lista_estacoes, id, *linhas); //Procura o indice com o id digitado
+    while(indice== -1) { //Valida o id
         printf("Id não encontrado!\n");
         printf("Digite o id da estação que deseja remover: ");
         scanf("%d", &id);
         getchar();
-        indice = buscar_estacao(lista_estacoes, id, linhas);
+        indice = buscar_estacao(lista_estacoes, id, *linhas);
         }
-    for(i=indice; i<linhas-1; i++) {
+
+    free(lista_estacoes[indice].leituras); //Limpa a memória alocada dinamicamente
+    for(i=indice; i<(*linhas)-1; i++) {
         lista_estacoes[i] = lista_estacoes[i+1]; //Remove estação (passa o proximo espaço p/ anterior)
         }
-    free(lista_estacoes[indice].leituras); //Limpa a memória alocada dinamicamente
-    linhas--; //diminui a contagem de linhas, uma vez que removemos uma estação
+
+    (*linhas)--; //diminui a contagem de linhas, uma vez que removemos uma estação
 }
 
 void ListaEstacoes (struct Estacao lista_estacoes[], int linhas) { //Código opção 4
@@ -495,11 +532,13 @@ void Anomalias(struct Estacao lista_estacoes[], int linhas) { //Código opção 
     printf("Insira o id da estação que deseja analisar: ");
     scanf("%d", &id);
     getchar();
+    int indice= buscar_estacao(lista_estacoes,id,linhas); 
     //Checa se o id existe
-    while(verifica_id(buscar_estacao(lista_estacoes, id, linhas), lista_estacoes, linhas) != 0) {
+    while(indice== -1) {
         printf("Id não encontrado! Digite um id válido: ");
         scanf("%d", &id);
         getchar();
+        indice=buscar_estacao(lista_estacoes,id,linhas);
         }
         int i,j;
         float x,y;
@@ -517,29 +556,36 @@ void Anomalias(struct Estacao lista_estacoes[], int linhas) { //Código opção 
 }
 
 int main(void) {
-    imprimir_menu();
-
     int opcao;
     int linhas;
     int i,j;
-    scanf("%d", &opcao);
-    getchar();
     linhas = conta_linhas(); //Conta quantas estações já estão cadastradas no arquivo
-    struct Estacao lista_estacoes[linhas]; //Vetor para armazenar as estações
-   
+
+    struct Estacao lista_estacoes[10000]; //Vetor para armazenar as estações (máx é 9999)
+
+   //Grava as informações do arquivo CSV na array de structs
+    if(linhas>0) abrirCSV(lista_estacoes,linhas); 
+
+    imprimir_menu();
+    printf("Insira a funcionalidade que deseja executar: ");
+    while(scanf("%d", &opcao) != 1){
+        printf("Opção inválida! Digite um número de 1 a 7: ");
+        while(getchar() != '\n');
+    }
+
     //Enquanto o usuário não sair o programa continua rodando
     while(opcao != 7) { 
         if (opcao == 1) { //opção para adicionar uma estacao
-       Adicionar_estacao(lista_estacoes,linhas);
+       Adicionar_estacao(lista_estacoes,&linhas);
     }
     else if(opcao==2) { //Opção para editar uma estação
        EditarEstacao(lista_estacoes,linhas);
     }
     else if(opcao==3) { //Opção para remover uma estação
-        RemoveEstacao(lista_estacoes,linhas);
+        RemoveEstacao(lista_estacoes,&linhas);
     }
     else if(opcao==4) { //Opção para listar as estações
-        ListaEstacao(lista_estacoes,linhas);
+        ListaEstacoes(lista_estacoes,linhas);
     }
     else if(opcao==5) { //Buscar por operador}
         BuscarporOperador(lista_estacoes,linhas);
@@ -547,11 +593,20 @@ int main(void) {
     else if(opcao==6) { //Buscar anomalias de uma estação
        Anomalias(lista_estacoes,linhas);
     }
+    else{
+        printf("Opção inválida! Digite um número de 1 a 7: ");
+    }
     imprimir_menu();
     scanf("%d", &opcao);
     getchar();
   }
 
   salvarCSV(lista_estacoes, linhas); //Salva as alterações feitas no programa no arquivo CSV
+
+  //Libera a memória alocada dinamicamente para cada estação
+  for(i=0; i<linhas; i++) {
+    free(lista_estacoes[i].leituras); 
+  }
+
   return 0;
 }
