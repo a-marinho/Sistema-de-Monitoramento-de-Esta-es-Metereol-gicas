@@ -102,7 +102,7 @@ int verifica_string(char string[], int n) { //0 para string valida
 int conta_linhas() { //Conta as linhas do arquivo (essencial para achar estacoes)
     FILE*arq = fopen("arquivo.csv", "r");
     if(arq == NULL) {
-        printf("Arquivo não encontrado!\n");
+        printf("Arquivo nao encontrado!\n");
         return 0; 
     }
     int contador = 0; 
@@ -152,9 +152,9 @@ void imprimir_estacao(struct Estacao lista_estacoes[], int indice) { //Imprime o
     printf("Sensor: %s\n", estacao.sensor);
     printf("Data: %02d/%02d/%04d\n", estacao.data.dia, estacao.data.mes, estacao.data.ano);
     printf("Quantidade de leituras: %d\n", estacao.n);
-    printf("Média: %.2f\n", estacao.media);
-    printf("Variância: %.2f\n", estacao.variancia);
-    printf("Desvio Padrão: %.2f\n", estacao.desvioPadrao);
+    printf("Media: %.2f\n", estacao.media);
+    printf("Variancia: %.2f\n", estacao.variancia);
+    printf("Desvio Padrao: %.2f\n", estacao.desvioPadrao);
     printf("Leituras:\n");
     for(int i=0; i<estacao.n; i++) {
         printf("%.2f ", estacao.leituras[i]);
@@ -162,38 +162,42 @@ void imprimir_estacao(struct Estacao lista_estacoes[], int indice) { //Imprime o
     printf("\n");
 }
 
-void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) { //Altera estação (opção 3)
+void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) { //Altera estação (opção 2)
     struct Estacao estacao = lista_estacoes[indice];
     if (alterador==1) {
-        printf("Insira o novo nome da estação: ");
+        printf("Insira o novo nome da estacao: ");
         fgets(estacao.nome, sizeof(estacao.nome), stdin);
+        //Importante pois verifica_string não valida o \n
+        estacao.nome[strcspn(estacao.nome, "\n")] = '\0'; 
         while(verifica_string(estacao.nome,sizeof(estacao.nome)) != 0) { //Le e verifica nome
-            printf("Nome invalido! Digite um nome que contenha apenas letras e espaços: ");
+            printf("Nome invalido! Digite um nome que contenha apenas letras e espacos: ");
             fgets(estacao.nome,sizeof(estacao.nome), stdin);
+            estacao.nome[strcspn(estacao.nome,"\n")] = '\0'; 
         }
-        estacao.nome[strcspn(estacao.nome,"\n")] = '\0'; 
         strcpy(lista_estacoes[indice].nome, estacao.nome); //grava a nova estacao
     }
 
     if (alterador==2) {
         printf("Insira o novo nome do operador: ");
         fgets(estacao.operador, sizeof(estacao.operador), stdin);
-        while(verifica_string(estacao.operador,sizeof(estacao.operador)) != 0) { //Le e verifica operador
-            printf("Nome de operador invalido! Digite um nome que contenha apenas letras e espaços: ");
-            fgets(estacao.operador,sizeof(estacao.operador),stdin);
-        }
         estacao.operador[strcspn(estacao.operador,"\n")]='\0';
+        while(verifica_string(estacao.operador,sizeof(estacao.operador)) != 0) { //Le e verifica operador
+            printf("Nome de operador invalido! Digite um nome que contenha apenas letras e espacos: ");
+            fgets(estacao.operador,sizeof(estacao.operador),stdin);
+            estacao.operador[strcspn(estacao.operador,"\n")]='\0';
+        }
         strcpy(lista_estacoes[indice].operador, estacao.operador); //grava o novo operador
     }
 
     if(alterador==3) {
         printf("Insira o novo tipo do sensor: ");
         fgets(estacao.sensor, sizeof(estacao.sensor), stdin);
-        while(verifica_string(estacao.sensor,sizeof(estacao.sensor)) != 0) { //Le e verifica operador
-            printf("Nome de sensor invalido! Digite um nome que contenha apenas letras e espaços: ");
-            fgets(estacao.sensor,sizeof(estacao.sensor),stdin);
-        }
         estacao.sensor[strcspn(estacao.sensor,"\n")]='\0';
+        while(verifica_string(estacao.sensor,sizeof(estacao.sensor)) != 0) { //Le e verifica operador
+            printf("Nome de sensor invalido! Digite um nome que contenha apenas letras e espacos: ");
+            fgets(estacao.sensor,sizeof(estacao.sensor),stdin);
+            estacao.sensor[strcspn(estacao.sensor,"\n")]='\0';
+        }
         strcpy(lista_estacoes[indice].sensor, estacao.sensor); //grava o novo sensor
     }
 
@@ -206,7 +210,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         }
         data[strcspn(data,"\n")] ='\0';
         while(verifica_data(data) != 1) { //verifica se a data é valida
-            printf("Data Inválida! Insira outra data: ");
+            printf("Data Invalida! Insira outra data: ");
             fgets(data,sizeof(data),stdin); 
             if(strchr(data,'\n') == NULL) { //Mesma lógica da anterior
                 while(getchar() != '\n'); 
@@ -225,7 +229,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         scanf("%d", &indice_novaleitura); //le o numero digitado da leitura a ser alterada
         getchar();
         while (indice_novaleitura < 1 || indice_novaleitura > estacao.n) { //checa se o numero é válido
-            printf("Número inválido! Digite um número entre 1 e %d: ", estacao.n);
+            printf("Numero inválido! Digite um numero entre 1 e %d: ", estacao.n);
             scanf("%d", &indice_novaleitura);
             getchar();
         }
@@ -237,7 +241,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
             }
             else{
                 while(getchar() != '\n');
-                printf("Leitura inválida! Digite um valor válido: ");
+                printf("Leitura invalida! Digite um valor valido: ");
             }
         }
         lista_estacoes[indice].leituras[indice_novaleitura-1] = nova_leitura; //grava o novo valor
@@ -246,7 +250,8 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         lista_estacoes[indice].variancia = calcularVariancia(lista_estacoes[indice].leituras, estacao.n);
         lista_estacoes[indice].desvioPadrao = sqrt(lista_estacoes[indice].variancia);
     }    
-    printf("Alterado com sucesso!");    
+    printf("Alterado com sucesso!");  
+    printf("\n");   
 }
 
 //Imprime as estações que tenham o mesmo operador 
@@ -262,10 +267,10 @@ void imprimir_operador(struct Estacao lista_estacoes[], int linhas, char operado
 
 void imprimir_menu() { //Imprime as funcionalidade do programa
     printf("   MENU  \n");
-    printf("1. Adicionar Estação\n");
-    printf("2. Editar Estação\n");
-    printf("3. Remover Estação\n");
-    printf("4. Listar Estações\n");
+    printf("1. Adicionar Estacao\n");
+    printf("2. Editar Estacao\n");
+    printf("3. Remover Estacao\n");
+    printf("4. Listar Estacoes\n");
     printf("5. Buscar por operador\n");
     printf("6. Detectar anomalias\n");
     printf("7. Sair\n");
@@ -297,7 +302,7 @@ int abrirCSV(struct Estacao lista_estacoes[], int linhas) {
 
         lista_estacoes[i].leituras = (float*)malloc(lista_estacoes[i].n * sizeof(float));
         for (j=0; j<lista_estacoes[i].n; j++) {
-            lista_estacoes[i].leituras[j] = atof(strtok(NULL, ";")); //Lê as leituras da estação
+            lista_estacoes[i].leituras[j] = atof(strtok(NULL, ",;\n")); //Lê as leituras da estação
         }
     }
     fclose(arq);
@@ -348,34 +353,38 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     scanf("%d", &lista_estacoes[*linhas].id);
     getchar();
     while (verifica_id(lista_estacoes[*linhas].id, lista_estacoes, *linhas) != 1) { //le e verifica id
-        printf("Id inválido! Digite um id menor ou igual que 9999 e que não exista: ");
+        printf("Id invalido! Digite um id menor ou igual que 9999 e que nao exista: ");
         scanf("%d", &lista_estacoes[*linhas].id);
         getchar();
     }
 
-    printf("Nome da Estação: "); //Armazena o nome da estação (quando válido)
+    printf("Nome da Estacao: "); //Armazena o nome da estação (quando válido)
     fgets(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome), stdin);
-    while(verifica_string(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome)) != 0) { //le e verifica nome
-        printf("Nome inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome), stdin);
-    }
+    //Importante, pois verifica_string não valia \n
     lista_estacoes[*linhas].nome[strcspn(lista_estacoes[*linhas].nome, "\n")] = '\0'; 
+    while(verifica_string(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome)) != 0) { //le e verifica nome
+        printf("Nome invalido! Digite um nome que contenha apenas letras e espacos: ");
+        fgets(lista_estacoes[*linhas].nome, sizeof(lista_estacoes[*linhas].nome), stdin);
+        lista_estacoes[*linhas].nome[strcspn(lista_estacoes[*linhas].nome, "\n")] = '\0'; 
+    }
 
     printf("Operador: "); //Armazena o nome do operador(quando válido)
     fgets(lista_estacoes[*linhas].operador,sizeof(lista_estacoes[*linhas].operador), stdin);
-    while(verifica_string(lista_estacoes[*linhas].operador, sizeof(lista_estacoes[*linhas].operador)) != 0) { //le e verifica operador
-        printf("Operador inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[*linhas].operador,sizeof(lista_estacoes[*linhas].operador), stdin);
-    }
     lista_estacoes[*linhas].operador[strcspn(lista_estacoes[*linhas].operador, "\n")] = '\0';
+    while(verifica_string(lista_estacoes[*linhas].operador, sizeof(lista_estacoes[*linhas].operador)) != 0) { //le e verifica operador
+        printf("Operador invalido! Digite um nome que contenha apenas letras e espacos: ");
+        fgets(lista_estacoes[*linhas].operador,sizeof(lista_estacoes[*linhas].operador), stdin);
+        lista_estacoes[*linhas].operador[strcspn(lista_estacoes[*linhas].operador, "\n")] = '\0';
+    }
 
     printf("Sensor: "); //Armazena o nome da string(quando válida)
     fgets(lista_estacoes[*linhas].sensor,sizeof(lista_estacoes[*linhas].sensor), stdin);
-    while(verifica_string(lista_estacoes[*linhas].sensor, sizeof(lista_estacoes[*linhas].sensor)) != 0) { //le e verifica sensor
-        printf("Sensor inválido! Digite um nome que contenha apenas letras e espaços: ");
-        fgets(lista_estacoes[*linhas].sensor,sizeof(lista_estacoes[*linhas].sensor), stdin);
-    }
     lista_estacoes[*linhas].sensor[strcspn(lista_estacoes[*linhas].sensor, "\n")] = '\0';
+    while(verifica_string(lista_estacoes[*linhas].sensor, sizeof(lista_estacoes[*linhas].sensor)) != 0) { //le e verifica sensor
+        printf("Sensor invalido! Digite um nome que contenha apenas letras e espacos: ");
+        fgets(lista_estacoes[*linhas].sensor,sizeof(lista_estacoes[*linhas].sensor), stdin);
+        lista_estacoes[*linhas].sensor[strcspn(lista_estacoes[*linhas].sensor, "\n")] = '\0';
+    }
 
     printf("Data (dd/mm/aaaa): ");
     char data[30];
@@ -388,7 +397,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     data[strcspn(data,"\n")] ='\0'; //Troca o \n da string se houver
     
     while(verifica_data(data) != 1) { //verifica se a data é valida
-        printf("Data Inválida! Insira outra data: ");
+        printf("Data Invalida! Insira outra data: ");
         fgets(data,sizeof(data),stdin); 
         if(strchr(data,'\n') == NULL) { //Mesma lógica da anterior
             while(getchar() != '\n'); 
@@ -404,7 +413,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     scanf("%d", &lista_estacoes[*linhas].n);
     getchar();
     while(verifica_n(lista_estacoes[*linhas].n) != 1) { //le e verifica n
-        printf("Quantidade inválida! Digite um número maior que 0 e menor que 9999: ");
+        printf("Quantidade invalida! Digite um numero maior que 0 e menor que 9999: ");
         scanf("%d", &lista_estacoes[*linhas].n);
         getchar();
     }
@@ -418,7 +427,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
                 break;
             } else {
                 while(getchar() != '\n'); //Limpa o buffer para uma próxima leitura
-                printf("Valor inválido! Digite um número válido: ");
+                printf("Valor invalido! Digite um número valido: ");
             }
         }
     }
@@ -454,20 +463,22 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
 //Código opção 2
 void EditarEstacao(struct Estacao lista_estacoes[], int linhas) { 
     int id;
-    printf("Digite o id da estação que deseja alterar: ");
+    printf("Digite o id da estacao que deseja alterar: ");
     scanf("%d", &id);
     getchar();
     int indice = buscar_estacao(lista_estacoes, id, linhas); //Busca o indice da estação com id
     while(indice== -1) { //Checa se existe estação com esse id
-        printf("Id não encontrado!\n");
-        printf("Digite o id da estação que deseja alterar: ");
+        printf("Id nao encontrado!\n");
+        printf("Digite o id da estacao que deseja alterar: ");
         scanf("%d", &id);
         getchar();
         indice = buscar_estacao(lista_estacoes, id, linhas);
         }
 
-    printf("Estação encontrada!\n");
+    printf("Estacao encontrada!\n");
+    printf("\n"); 
     imprimir_estacao(lista_estacoes, indice); //Imprime a estação com esse id
+    printf("\n");
         
     int alterador; //Define o que será alterado na struct
     printf("O Que deseja alterar?\n");
@@ -486,13 +497,13 @@ void EditarEstacao(struct Estacao lista_estacoes[], int linhas) {
 //Linhas é ponteiro para linhas-- refletir no main
 void RemoveEstacao(struct Estacao lista_estacoes[], int *linhas) { 
     int id, i;
-    printf("Digite o id da estação que deseja remover: ");
+    printf("Digite o id da estacao que deseja remover: ");
     scanf("%d", &id);
     getchar();
     int indice = buscar_estacao(lista_estacoes, id, *linhas); //Procura o indice com o id digitado
     while(indice== -1) { //Valida o id
-        printf("Id não encontrado!\n");
-        printf("Digite o id da estação que deseja remover: ");
+        printf("Id nao encontrado!\n");
+        printf("Digite o id da estacao que deseja remover: ");
         scanf("%d", &id);
         getchar();
         indice = buscar_estacao(lista_estacoes, id, *linhas);
@@ -519,8 +530,9 @@ void BuscarporOperador(struct Estacao lista_estacoes[], int linhas) { //Código 
     char operador[60];
     printf("Digite o nome do operador que deseja buscar: ");
     fgets(operador,sizeof(operador), stdin);
+    
     while(verifica_string(operador, sizeof(operador)) != 0) { //Valida o nome digitado
-        printf("Nome de operador inválido! Digite um nome que contenha apenas letras e espaços: ");
+        printf("Nome de operador invalido! Digite um nome que contenha apenas letras e espacos: ");
         fgets(operador,sizeof(operador),stdin);
     }
     operador[strcspn(operador, "\n")] = '\0';
@@ -529,13 +541,13 @@ void BuscarporOperador(struct Estacao lista_estacoes[], int linhas) { //Código 
 
 void Anomalias(struct Estacao lista_estacoes[], int linhas) { //Código opção 6
     int id;
-    printf("Insira o id da estação que deseja analisar: ");
+    printf("Insira o id da estacao que deseja analisar: ");
     scanf("%d", &id);
     getchar();
     int indice= buscar_estacao(lista_estacoes,id,linhas); 
     //Checa se o id existe
     while(indice== -1) {
-        printf("Id não encontrado! Digite um id válido: ");
+        printf("Id nao encontrado! Digite um id valido: ");
         scanf("%d", &id);
         getchar();
         indice=buscar_estacao(lista_estacoes,id,linhas);
@@ -564,7 +576,7 @@ int main(void) {
     //Array de structs declarada dinamicamente
     struct Estacao *lista_estacoes = malloc(10000 * sizeof(struct Estacao)); 
     if(lista_estacoes == NULL) {
-        printf("Erro ao alocar memória!\n");
+        printf("Erro ao alocar memoria!\n");
         return 1; 
     }
 
@@ -574,7 +586,7 @@ int main(void) {
     imprimir_menu();
     printf("Insira a funcionalidade que deseja executar: ");
     while(scanf("%d", &opcao) != 1){
-        printf("Opção inválida! Digite um número de 1 a 7: ");
+        printf("Opcao invalida! Digite um numero de 1 a 7: ");
         while(getchar() != '\n');
     }
 
@@ -599,7 +611,7 @@ int main(void) {
        Anomalias(lista_estacoes,linhas);
     }
     else{
-        printf("Opção inválida! Digite um número de 1 a 7: ");
+        printf("Opcao invalida! Digite um numero de 1 a 7: ");
     }
     imprimir_menu();
     scanf("%d", &opcao);
