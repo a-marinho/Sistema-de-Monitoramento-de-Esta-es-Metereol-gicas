@@ -281,7 +281,6 @@ int abrirCSV(struct Estacao lista_estacoes[], int linhas) {
     int i,j;
     char linha[2000];
     fgets(linha, sizeof(linha),arq); //Pula a linha do cabeçalho
-
     for (i=0; i<linhas; i++) { //Leitura das estações presentes no arquivo
         fgets(linha, sizeof(linha), arq); 
         lista_estacoes[i].id = atoi(strtok(linha, ",")); 
