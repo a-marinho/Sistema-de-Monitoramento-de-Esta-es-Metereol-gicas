@@ -79,7 +79,7 @@ int verifica_id(int id, struct Estacao lista_estacoes[], int linhas) { //1 para 
             return 0;
         }
     }
-    if(id>= 0 && id < 9999) return 1; //se não existir, verifica se esta no intervalo
+    if(id>= 0 && id <= 9999) return 1; //se não existir, verifica se esta no intervalo
     return 0;
 }
 
@@ -168,7 +168,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
         printf("Insira o novo nome da estação: ");
         fgets(estacao.nome, sizeof(estacao.nome), stdin);
         while(verifica_string(estacao.nome,sizeof(estacao.nome)) != 0) { //Le e verifica nome
-            printf("Nome invalido! Digite um nome que contenha apenas lestras e espaços: ");
+            printf("Nome invalido! Digite um nome que contenha apenas letras e espaços: ");
             fgets(estacao.nome,sizeof(estacao.nome), stdin);
         }
         estacao.nome[strcspn(estacao.nome,"\n")] = '\0'; 
@@ -199,7 +199,7 @@ void altera_estacao(struct Estacao lista_estacoes[], int indice, int alterador) 
 
     if(alterador==4) {
         printf("Insira a nova data (dd/mm/aaaa): ");
-        char data[11];
+        char data[30];
         fgets(data, sizeof(data), stdin);
         if(strchr(data,'\n') == NULL) { //Verifica se precisa limpar o buffer
             while(getchar() != '\n'); //limpa o buffer
@@ -310,13 +310,13 @@ void salvarCSV(struct Estacao lista_estacoes[], int linhas) {
     FILE*arq = fopen("arquivo.csv", "w");
     if (arq == NULL) { //Checa se foi possível abrir o arquivo
         printf("Erro ao abrir o arquivo!\n");
-        return 0;
+        return;
     }
     //Grava o cabeçalho 
     fprintf(arq, "ID,Nome,Operador,Sensor,Data,N,Media,Variancia,DesvioPadrao,Leituras\n");
     int i, j;
     for (int i = 0; i < linhas; i++) {
-        fprintf(arq, "%d,%s,%s,%s,%02d,%02d/%02d/%04d,%d,%.2f,%.2f,%.2f", //Grava todas as informações
+        fprintf(arq, "%d,%s,%s,%s,%02d/%02d/%04d,%d,%.2f,%.2f,%.2f", //Grava todas as informações
                 lista_estacoes[i].id,
                 lista_estacoes[i].nome,
                 lista_estacoes[i].operador,
@@ -349,7 +349,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     scanf("%d", &lista_estacoes[*linhas].id);
     getchar();
     while (verifica_id(lista_estacoes[*linhas].id, lista_estacoes, *linhas) != 1) { //le e verifica id
-        printf("Id inválido! Digite um id menor que 9999 e que não exista: ");
+        printf("Id inválido! Digite um id menor ou igual que 9999 e que não exista: ");
         scanf("%d", &lista_estacoes[*linhas].id);
         getchar();
     }
@@ -379,7 +379,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     lista_estacoes[*linhas].sensor[strcspn(lista_estacoes[*linhas].sensor, "\n")] = '\0';
 
     printf("Data (dd/mm/aaaa): ");
-    char data[11];
+    char data[30];
     fgets(data, sizeof(data), stdin);
     //Nesse caso strchr procura se em data temos \n
     //Se não houver, retorna NULL. O que significa que sobrou coisa no buffer que deve ser limpa
@@ -449,6 +449,7 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
 
     fclose(arq);
     (*linhas)++; //adiciona mais uma linha na contagem total
+    salvarCSV(lista_estacoes, *linhas); //Salva a estação no Arquivo CSV
 }
 
 //Código opção 2
@@ -561,7 +562,12 @@ int main(void) {
     int i,j;
     linhas = conta_linhas(); //Conta quantas estações já estão cadastradas no arquivo
 
-    struct Estacao lista_estacoes[10000]; //Vetor para armazenar as estações (máx é 9999)
+    //Array de structs declarada dinamicamente
+    struct Estacao *lista_estacoes = malloc(10000 * sizeof(struct Estacao)); 
+    if(lista_estacoes == NULL) {
+        printf("Erro ao alocar memória!\n");
+        return 1; 
+    }
 
    //Grava as informações do arquivo CSV na array de structs
     if(linhas>0) abrirCSV(lista_estacoes,linhas); 
@@ -608,5 +614,6 @@ int main(void) {
     free(lista_estacoes[i].leituras); 
   }
 
+  free(lista_estacoes);
   return 0;
 }
