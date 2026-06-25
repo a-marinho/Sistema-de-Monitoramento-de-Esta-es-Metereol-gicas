@@ -274,6 +274,7 @@ void imprimir_menu() { //Imprime as funcionalidade do programa
     printf("5. Buscar por operador\n");
     printf("6. Detectar anomalias\n");
     printf("7. Sair\n");
+    printf("\n");
 }
 
 //Abre o arquivo e grava os dados em uma array de structs (lista_estacoes)
@@ -333,7 +334,8 @@ void salvarCSV(struct Estacao lista_estacoes[], int linhas) {
                 lista_estacoes[i].variancia,
                 lista_estacoes[i].desvioPadrao);
         for (int j = 0; j < lista_estacoes[i].n; j++) {
-            fprintf(arq, ";%.2f", lista_estacoes[i].leituras[j]);
+            if(j==0) fprintf(arq, ",%.2f", lista_estacoes[i].leituras[j]);
+            else fprintf(arq, ";%.2f", lista_estacoes[i].leituras[j]); 
         }
         fprintf(arq, "\n");
     }
@@ -343,11 +345,6 @@ void salvarCSV(struct Estacao lista_estacoes[], int linhas) {
 //codigo opção 1
 //linhas deve ser ponteiro para alteração (linhas++) refletir no main
 void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) { 
-    FILE*arq = fopen("arquivo.csv", "a"); //Abre o arquivo para escrita
-    if (arq == NULL) {
-        printf("Erro ao abrir o arquivo!\n");
-        return; //Trata-se de uma função void, não faz sentido retornar 0 (nem vai ser útil)
-    }
     int i;
     printf("Id: "); //Armazena o ID da nova estação (quando válido)
     scanf("%d", &lista_estacoes[*linhas].id);
@@ -437,25 +434,9 @@ void Adicionar_estacao(struct Estacao lista_estacoes[], int *linhas) {
     lista_estacoes[*linhas].variancia = calcularVariancia(leituras,lista_estacoes[*linhas].n);
     lista_estacoes[*linhas].desvioPadrao = sqrt(lista_estacoes[*linhas].variancia);
 
-    fprintf(arq, "%d,%s,%s,%s,%d,%.2f,%.2f,%.2f,%02d/%02d/%04d,%d", //Salva no CSV os dados 
-            lista_estacoes[*linhas].id,
-            lista_estacoes[*linhas].nome,
-            lista_estacoes[*linhas].operador,
-            lista_estacoes[*linhas].sensor,
-            lista_estacoes[*linhas].n,
-            lista_estacoes[*linhas].media,
-            lista_estacoes[*linhas].variancia,
-            lista_estacoes[*linhas].desvioPadrao,
-            lista_estacoes[*linhas].data.dia,
-            lista_estacoes[*linhas].data.mes,
-            lista_estacoes[*linhas].data.ano);
+    printf("Adicionada com sucesso!\n"); 
+    printf("\n");
 
-    for (i = 0; i < lista_estacoes[*linhas].n; i++) { //Percorre todas as leituras e grava no CSV
-        fprintf(arq, ";%.2f", leituras[i]);
-    }
-    fprintf(arq, "\n");
-
-    fclose(arq);
     (*linhas)++; //adiciona mais uma linha na contagem total
     salvarCSV(lista_estacoes, *linhas); //Salva a estação no Arquivo CSV
 }
@@ -513,6 +494,7 @@ void RemoveEstacao(struct Estacao lista_estacoes[], int *linhas) {
     for(i=indice; i<(*linhas)-1; i++) {
         lista_estacoes[i] = lista_estacoes[i+1]; //Remove estação (passa o proximo espaço p/ anterior)
         }
+    printf("Estacao removida com sucesso! "); 
 
     (*linhas)--; //diminui a contagem de linhas, uma vez que removemos uma estação
 }
