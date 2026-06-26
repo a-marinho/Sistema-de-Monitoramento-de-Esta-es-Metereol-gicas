@@ -267,6 +267,7 @@ void imprimir_operador(struct Estacao lista_estacoes[], int linhas, char operado
     for(i=0; i<linhas; i++) {
         if(strcmp(lista_estacoes[i].operador, operador) == 0) { //Checa o operador de cada estação
             imprimir_estacao(lista_estacoes,i);
+            printf("\n"); 
         }
     }
 }
@@ -556,6 +557,7 @@ void Anomalias(struct Estacao lista_estacoes[], int linhas) { //Código opção 
                 printf("Leitura %d: %.2f\n", j+1, estacao.leituras[j]);
             }
         }
+        printf("\n"); 
 }
 
 int main(void) {
