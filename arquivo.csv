@@ -1,2 +1,4 @@
 ID,Nome,Operador,Sensor,Data,N,Media,Variancia,DesvioPadrao,Leituras
-
+13,Terra,Artur,Temperatura,29/04/2008,4,35.00,1408.50,37.53,13.00;13.00;14.00;100.00
+16,Filipinas,Artur,Umidade,13/04/1974,2,14.50,6.25,2.50,12.00;17.00
+154,Resident,Eduardo,Temperatura,13/05/2001,3,47.67,969.56,31.14,16.00;90.00;37.00

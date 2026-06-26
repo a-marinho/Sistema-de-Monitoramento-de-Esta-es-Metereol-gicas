@@ -101,9 +101,16 @@ int verifica_string(char string[], int n) { //0 para string valida
 
 int conta_linhas() { //Conta as linhas do arquivo (essencial para achar estacoes)
     FILE*arq = fopen("arquivo.csv", "r");
-    if(arq == NULL) {
-        printf("Arquivo nao encontrado!\n");
-        return 0; 
+     if(arq == NULL) {
+        // Arquivo não existe: cria com o cabeçalho
+        arq = fopen("arquivo.csv", "w");
+        if(arq == NULL) {
+            printf("Erro ao criar o arquivo!\n");
+            return 0;
+        }
+        fprintf(arq, "ID,Nome,Operador,Sensor,Data,N,Media,Variancia,DesvioPadrao,Leituras\n");
+        fclose(arq);
+        return 0;
     }
     int contador = 0; 
     char linha[2000];
@@ -494,7 +501,8 @@ void RemoveEstacao(struct Estacao lista_estacoes[], int *linhas) {
     for(i=indice; i<(*linhas)-1; i++) {
         lista_estacoes[i] = lista_estacoes[i+1]; //Remove estação (passa o proximo espaço p/ anterior)
         }
-    printf("Estacao removida com sucesso! "); 
+    printf("Estacao removida com sucesso!\n ");
+    printf("\n"); 
 
     (*linhas)--; //diminui a contagem de linhas, uma vez que removemos uma estação
 }
@@ -502,7 +510,7 @@ void RemoveEstacao(struct Estacao lista_estacoes[], int *linhas) {
 void ListaEstacoes (struct Estacao lista_estacoes[], int linhas) { //Código opção 4
         int i;
         for(i=0; i<linhas; i++) {
-            printf("Estação %d:\n", i+1);
+            printf("Estacao %d:\n", i+1);
             imprimir_estacao(lista_estacoes, i); //Imprime todas as estações do arquivo CSV
             printf("\n");
         }
@@ -512,6 +520,7 @@ void BuscarporOperador(struct Estacao lista_estacoes[], int linhas) { //Código 
     char operador[60];
     printf("Digite o nome do operador que deseja buscar: ");
     fgets(operador,sizeof(operador), stdin);
+    operador[strcspn(operador, "\n")] = '\0';
     
     while(verifica_string(operador, sizeof(operador)) != 0) { //Valida o nome digitado
         printf("Nome de operador invalido! Digite um nome que contenha apenas letras e espacos: ");
